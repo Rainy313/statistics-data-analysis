@@ -1,1 +1,118 @@
-@learning-materials/agent.html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习：Agent（智能体）</title>
+<style>
+  :root { --accent:#2563eb; --bg:#f8fafc; --card:#ffffff; --text:#1e293b; --muted:#64748b; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); line-height:1.8; margin:0; padding:2rem 1rem; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font-size:1.8rem; border-bottom:3px solid var(--accent); padding-bottom:.5rem; }
+  h2 { font-size:1.25rem; color:var(--accent); margin-top:2.2rem; }
+  .def { background:#eff6ff; border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:0 8px 8px 0; font-size:1.05rem; }
+  section, .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.2rem 1.5rem; margin-top:1rem; }
+  ol li, ul li { margin:.3rem 0; }
+  table { border-collapse:collapse; width:100%; margin:.8rem 0; }
+  th, td { border:1px solid var(--border); padding:.5rem .8rem; text-align:left; font-size:.95rem; }
+  th { background:#f1f5f9; }
+  .warn { background:#fffbeb; border-left:4px solid #f59e0b; padding:.8rem 1rem; border-radius:0 8px 8px 0; margin:.8rem 0; }
+  .src { font-size:.9rem; color:var(--muted); }
+  .src a { color:var(--accent); word-break:break-all; }
+  details { margin:.5rem 0; }
+  summary { cursor:pointer; font-weight:600; }
+  .meta { color:var(--muted); font-size:.85rem; text-align:right; }
+</style>
+</head>
+<body>
+<main>
+<h1>概念学习：Agent（智能体）</h1>
+<p class="meta">由 concept-study-guide Skill 生成 · 人工核查后定稿 · 2026-09-09</p>
+
+<div class="def"><strong>一句话定义：</strong>Agent 是能围绕一个目标，自主地"感知环境 → 规划步骤 → 调用工具执行 → 根据反馈调整"的大模型应用形态，而不只是"你问一句它答一句"。</div>
+
+<h2>一、学习目标</h2>
+<section>
+<ol>
+  <li>能用自己的话说出 Agent 与普通聊天机器人的核心区别（自主规划与工具使用）。</li>
+  <li>能列出 Agent 的基本组成，并说明各部分的作用。</li>
+  <li>能举出一个真实场景，说明 Agent 在其中"多做了什么"。</li>
+  <li>能判断一个任务适不适合交给 Agent，说出理由。</li>
+</ol>
+</section>
+
+<h2>二、核心问题</h2>
+<section>
+<ol>
+  <li>Agent 和普通的"大模型问答"到底差在哪？</li>
+  <li>Agent 是怎么"决定下一步做什么"的？</li>
+  <li>工具（tools）在 Agent 里扮演什么角色？</li>
+  <li>什么任务不该用 Agent？</li>
+</ol>
+<p>下面的第三至六节分别回答这四个问题。</p>
+</section>
+
+<h2>三、我的个人解释</h2>
+<section>
+<p>我原来理解的 AI 就是"问答机"：输入问题，输出答案，结束。学完 Agent 之后，我的理解升级为：<strong>Agent 是把大模型从"回答者"变成"干活的人"</strong>。普通问答里，模型只负责"说"；Agent 里，模型负责"想 + 做 + 看结果 + 再想"这个循环。</p>
+<p>我觉得最好的类比是<strong>实习生</strong>：你给它一个目标（"帮我把这份报告里的数据整理成表"），它自己拆步骤（读文件→提取数据→写表格→自查格式），中间会使用工具（读文件的程序、表格软件），遇到问题会调整（文件打不开就换个方式读）。你只在关键节点确认，而不是每一步都指挥。</p>
+<p>不确定之处：不同材料对 Agent 的定义宽严不一——有的把"能调用一次工具的问答"就叫 Agent，有的要求必须有自主规划和多步循环。我目前更认同后者这种严格定义，待继续阅读后验证。</p>
+</section>
+
+<h2>四、核心机制 / 组成部分</h2>
+<section>
+<p>参考 Anthropic《Building Effective Agents》与 Lilian Weng 的综述，Agent 通常由四部分组成：</p>
+<table>
+  <tr><th>组成部分</th><th>作用</th><th>类比实习生</th></tr>
+  <tr><td>模型（大脑）</td><td>理解目标、推理规划、决定下一步</td><td>实习生本人</td></tr>
+  <tr><td>工具（手）</td><td>执行动作：搜索、读写文件、调 API、运行代码</td><td>电脑、软件权限</td></tr>
+  <tr><td>编排循环（工作方式）</td><td>"思考 → 行动 → 观察结果 → 再思考"循环，直到完成目标</td><td>做—检查—返工</td></tr>
+  <tr><td>记忆 / 上下文</td><td>保存目标、已有进展、中间结果，供后续决策使用</td><td>工作笔记本</td></tr>
+</table>
+<p>关键机制是<strong>编排循环</strong>：模型每一步生成"下一步做什么 + 需要什么工具"的决策，系统执行工具调用并把结果放回上下文，模型再看结果决定继续、换方法还是结束。Agent 不是一次生成就能完成的，而是多轮循环的产物。</p>
+</section>
+
+<h2>五、一个具体应用场景</h2>
+<section>
+<p><strong>场景：自动化处理每周的客户反馈。</strong> 假设我每周一收到一个邮箱文件夹，里面是几十封客户反馈邮件，目标是"整理出本周反馈主题分布和最紧急的 5 个问题"。</p>
+<ul>
+  <li><strong>普通问答模式：</strong>我得自己一封封复制邮件内容贴给模型，让它总结，最后自己汇总——模型只帮了"理解文字"这一步。</li>
+  <li><strong>Agent 模式：</strong>我只给目标。Agent 自己调用邮箱工具读取全部邮件 → 逐封分类打标签 → 汇总主题分布 → 按关键词和情绪判断紧急程度 → 输出报告 → 发现两封邮件是转发乱码，自动改用附件解析重读。整个过程中它自主完成了 6 个步骤、用到了 3 种工具，并根据中间结果调整过一次做法。</li>
+</ul>
+<p>这个场景体现了 Agent 的价值：<strong>任务有多个步骤、步骤之间依赖中间结果、需要工具才能完成</strong>——这时 Agent 的自主循环比人一步步指挥更省力。</p>
+</section>
+
+<h2>六、易混淆问题与使用边界</h2>
+<section>
+<div class="warn"><strong>易混淆 1：Agent ≠ Workflow（工作流）。</strong> Anthropic 明确区分了二者：Workflow 是开发者预先写死的固定流程（模型只是在固定节点被调用）；Agent 则由模型自己决定步骤和顺序。能用固定流程解决的任务，用 Workflow 更便宜、更可控——不必硬上 Agent。</div>
+<div class="warn"><strong>易混淆 2：Agent ≠ 聊天机器人。</strong> 聊天机器人以"对话轮次"为中心，回答完即结束；Agent 以"完成目标"为中心，可以多轮自主行动，对话只是它与人的接口之一。</div>
+<div class="warn"><strong>使用边界：</strong>
+<ul>
+  <li>一步就能答的问题（问定义、翻译一段话）：直接问答即可，Agent 徒增成本和不可控性。</li>
+  <li>流程完全固定、高频执行的任务：写成 Workflow/脚本更稳定，Agent 的"自主性"在这里是风险而非优点。</li>
+  <li>涉及资金、删除数据等高风险操作：Agent 可能出错，必须加人工确认环节。</li>
+</ul></div>
+</section>
+
+<h2>七、自测题</h2>
+<section>
+<details><summary>1.（判断）只要大模型能调用工具，它就是一个 Agent。</summary><p><strong>参考要点：</strong>不一定。能否自主规划多步、根据反馈调整也是 Agent 的必要特征；只在固定位置调用一次工具的更接近 Workflow。参见第六节"易混淆 1"。</p></details>
+<details><summary>2.（辨析）"写死流程的自动回复机器人"和"接到目标后自己拆步骤执行的助手"，哪个是 Agent？为什么？</summary><p><strong>参考要点：</strong>后者。判断标准是"谁决定步骤"：流程由开发者预先固定的是 Workflow；由模型在运行中规划并循环调整的才是 Agent。</p></details>
+<details><summary>3.（举例）举一个你身边不适合交给 Agent 的任务，并说明理由。</summary><p><strong>参考要点（示例）：</strong>每天定时备份文件夹到固定网盘——步骤完全固定、无需推理、高频执行，写成脚本/Workflow 更稳定便宜，用 Agent 反而引入不确定性。答案合理即可。</p></details>
+<details><summary>4.（简答）Agent 的编排循环里，"观察结果"这一步为什么不可缺少？</summary><p><strong>参考要点：</strong>没有观察，循环就退化成一次性执行，无法根据工具返回的真实结果修正方向；观察把环境反馈放回上下文，是模型"再思考"的依据。</p></details>
+</section>
+
+<h2>八、参考来源（均已人工访问核查）</h2>
+<section class="src">
+<ol>
+  <li>Anthropic，<em>Building Effective Agents</em>（2024-12）——<a href="https://www.anthropic.com/research/building-effective-agents">https://www.anthropic.com/research/building-effective-agents</a><br>支撑：第四节的组成机制、第六节"Agent ≠ Workflow"的辨析。</li>
+  <li>Lilian Weng，<em>LLM Powered Autonomous Agents</em>（2023-06）——<a href="https://lilianweng.github.io/posts/2023-06-23-agent/">https://lilianweng.github.io/posts/2023-06-23-agent/</a><br>支撑：第四节"规划—工具—记忆"三要素的框架。</li>
+  <li>OpenAI，<em>A practical guide to building agents</em>（2025）——<a href="https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf">https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf</a><br>支撑：第六节使用边界（何时该用 / 不该用 Agent）。</li>
+</ol>
+</section>
+
+<p class="meta">参考资料核查记录：以上 3 条链接生成后已逐一点击访问确认可用；第四节表格为综合 1、2 改写，非原文照搬。</p>
+</main>
+</body>
+</html>

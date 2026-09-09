@@ -1,1 +1,29 @@
-@.gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# 数据文件（大文件不纳入版本控制）
+*.csv.zip
+*.pkl
+*.h5
+*.parquet
+data/raw/
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 敏感信息（凭据、密钥绝不入库）
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+*secret*
+~$*

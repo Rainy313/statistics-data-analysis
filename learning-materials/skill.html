@@ -1,1 +1,128 @@
-@learning-materials/skill.html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习：Skill（智能体技能）</title>
+<style>
+  :root { --accent:#2563eb; --bg:#f8fafc; --card:#ffffff; --text:#1e293b; --muted:#64748b; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); line-height:1.8; margin:0; padding:2rem 1rem; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font-size:1.8rem; border-bottom:3px solid var(--accent); padding-bottom:.5rem; }
+  h2 { font-size:1.25rem; color:var(--accent); margin-top:2.2rem; }
+  .def { background:#eff6ff; border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:0 8px 8px 0; font-size:1.05rem; }
+  section, .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.2rem 1.5rem; margin-top:1rem; }
+  ol li, ul li { margin:.3rem 0; }
+  table { border-collapse:collapse; width:100%; margin:.8rem 0; }
+  th, td { border:1px solid var(--border); padding:.5rem .8rem; text-align:left; font-size:.95rem; }
+  th { background:#f1f5f9; }
+  pre { background:#0f172a; color:#e2e8f0; padding:1rem; border-radius:8px; overflow-x:auto; font-size:.88rem; line-height:1.6; }
+  code { font-family:Consolas,monospace; }
+  p code, li code { background:#eef2ff; color:#3730a3; padding:.1rem .35rem; border-radius:4px; font-size:.9em; }
+  .warn { background:#fffbeb; border-left:4px solid #f59e0b; padding:.8rem 1rem; border-radius:0 8px 8px 0; margin:.8rem 0; }
+  .src { font-size:.9rem; color:var(--muted); }
+  .src a { color:var(--accent); word-break:break-all; }
+  details { margin:.5rem 0; }
+  summary { cursor:pointer; font-weight:600; }
+  .meta { color:var(--muted); font-size:.85rem; text-align:right; }
+</style>
+</head>
+<body>
+<main>
+<h1>概念学习：Skill（智能体技能）</h1>
+<p class="meta">由 concept-study-guide Skill 生成 · 人工核查后定稿 · 2026-09-09</p>
+
+<div class="def"><strong>一句话定义：</strong>Skill 是把"完成某类任务的成套知识"（做法说明、流程、脚本、参考资料）写进一个带元数据说明的文件夹，智能体在遇到匹配任务时按需加载执行的可复用能力包。</div>
+
+<h2>一、学习目标</h2>
+<section>
+<ol>
+  <li>能说出一个 Skill 文件夹的基本结构，以及 SKILL.md 元数据的作用。</li>
+  <li>能解释 Skill 为什么用"渐进式加载"（先看简介，按需读全文）。</li>
+  <li>能判断什么任务值得沉淀为 Skill，什么任务不值得。</li>
+  <li>能区分 Skill 与工具（tool）、与系统提示词的差异。</li>
+</ol>
+</section>
+
+<h2>二、核心问题</h2>
+<section>
+<ol>
+  <li>Skill 到底是什么？它和一段"写好的提示词"有什么区别？</li>
+  <li>智能体是怎么"发现"并"使用"一个 Skill 的？</li>
+  <li>为什么说 Skill 解决的是"专家经验难以复用"的问题？</li>
+  <li>Skill、工具（tool）、MCP 各管什么？</li>
+</ol>
+<p>下面第三至六节分别回答。</p>
+</section>
+
+<h2>三、我的个人解释</h2>
+<section>
+<p>我原来以为让 AI 做好一件事，办法就是把提示词写得足够长、每次都贴一遍。学习后我意识到这样做有三个痛点：好的做法<strong>散落在聊天记录里无法沉淀</strong>、每次都要<strong>重复占用上下文</strong>、别人无法直接复用我的经验。<strong>Skill 的本质是把"我会怎么做这类事"从对话里抽出来，存成文件，变成可以版本管理、可以分享、可以迭代的能力资产。</strong></p>
+<p>类比：如果说 Agent 是实习生（见我的 agent 学习资料），那么 Skill 就是<strong>给实习生配的《岗位操作手册》</strong>。手册平时放在书架上（存放在技能目录），实习生接到相关任务时先翻目录（读元数据里的简介），确认 relevant 才取下手册细读，然后照着里面的流程、注意事项、配套模板干活。有了手册，同类的活儿第二次就能按经过验证的做法做，而不是每次重新摸索。</p>
+<p>不确定之处：Skill 目录中除 SKILL.md 外的附属文件（脚本、模板）的组织方式，各家平台规范尚不完全一致，本仓库以 WorkBuddy/Agent Skills 的约定（SKILL.md + YAML frontmatter）为准。</p>
+</section>
+
+<h2>四、核心机制 / 组成部分</h2>
+<section>
+<p>以 Anthropic 提出的 Agent Skills 规范（WorkBuddy 采用同一思路）为例，一个 Skill 是一个文件夹：</p>
+<pre>my-skill/
+├── SKILL.md          # 必需：YAML 元数据 + 正文说明
+├── scripts/          # 可选：可执行脚本（如数据转换脚本）
+├── references/       # 可选：详细参考资料（按需查阅）
+└── assets/           # 可选：模板、静态资源</pre>
+<p>SKILL.md 头部的 YAML 元数据至少包含 <code>name</code> 和 <code>description</code>：</p>
+<pre>---
+name: concept-study-guide
+description: 输入任意学习概念，生成结构化 HTML 学习资料……（写清何时该用本技能）
+---</pre>
+<p><strong>关键机制——渐进式加载（progressive disclosure），分三层：</strong></p>
+<table>
+  <tr><th>层级</th><th>加载内容</th><th>时机</th></tr>
+  <tr><td>第一层</td><td>各 Skill 的 name + description（几十词）</td><td>会话开始即常驻，用于判断"要不要用"</td></tr>
+  <tr><td>第二层</td><td>命中任务的 SKILL.md 正文</td><td>智能体判定相关后才读入上下文</td></tr>
+  <tr><td>第三层</td><td>附属文件（脚本、references）</td><td>执行中按需再读 / 直接执行</td></tr>
+</table>
+<p>这样设计的巧妙之处：<strong>可以安装很多 Skill 而不撑爆上下文窗口</strong>——常驻的只有简介，正文与资源按需进入上下文（把"上下文"这一概念利用到了极致）。</p>
+</section>
+
+<h2>五、一个具体应用场景</h2>
+<section>
+<p><strong>场景：本仓库中的 concept-study-guide Skill（现成的实例）。</strong> 我在准备多门课程时都要"学习一个新概念并整理成资料"。没有 Skill 时，每次都要重新描述要求（要哪些板块、来源怎么核查、格式什么样），质量忽高忽低。</p>
+<p>把这套做法沉淀为 Skill 后：<code>输入："用 concept-study-guide 学习 RAG"</code> → 智能体读到简介判断任务匹配 → 加载 SKILL.md 全文 → 按其中规定的"学习目标→核心问题→个人解释→机制→场景→辨析→自测→来源"八段式生成 → 按自检清单核对后落盘。每学一个新概念都复用同一流程，产出结构统一、可直接入库对比复习。</p>
+<p>这体现了 Skill 的核心价值：<strong>把一次性的好做法变成可重复执行的流程资产，且随版本提交不断迭代</strong>——本次作业本身就同时是 Skill 的应用案例和迭代记录。</p>
+</section>
+
+<h2>六、易混淆问题与使用边界</h2>
+<section>
+<div class="warn"><strong>易混淆 1：Skill ≠ 工具（tool）。</strong> 工具是智能体可调用的<strong>具体动作接口</strong>（搜索、执行代码、读文件），由平台提供，返回真实世界的结果；Skill 是<strong>任务知识</strong>（怎么做、按什么流程做、注意什么），以文档与脚本形式存在。二者常配合：Skill 在正文里指示智能体"用某工具执行某脚本"。</div>
+<div class="warn"><strong>易混淆 2：Skill ≠ 更长的系统提示词。</strong> 系统提示词常驻上下文、全局生效；Skill 平时只占一行简介，按需加载、针对特定任务生效。一次性的任务指令写在对话里即可，不必做成 Skill。</div>
+<div class="warn"><strong>使用边界：</strong>
+<ul>
+  <li><strong>值得做成 Skill</strong>：可重复出现的同类任务、有明确质量要求、流程经验需要沉淀共享（如代码评审、报告生成、资料整理）。</li>
+  <li><strong>不值得</strong>：一次性任务；步骤完全固定、无需智能判断的流程（直接写脚本更可靠）；要求实时访问外部系统的能力（那是工具/MCP 的职责）。</li>
+  <li>Skill 的 description 写得含糊会导致智能体该用时不用（匹配不上）；写得夸大又会导致不该用时误触发——它是整个机制的"路由开关"，需要认真打磨。</li>
+</ul></div>
+</section>
+
+<h2>七、自测题</h2>
+<section>
+<details><summary>1.（判断）SKILL.md 里的 description 只是给人看的备注，写简短点没关系。</summary><p><strong>参考要点：</strong>错。description 是智能体判断"当前任务是否匹配此 Skill"的依据（第一层加载的唯一信息），写不清会漏触发或误触发，是 Skill 最关键的部件之一。</p></details>
+<details><summary>2.（简答）渐进式加载解决了什么矛盾？</summary><p><strong>参考要点：</strong>解决了"装得多"与"上下文有限"的矛盾：常驻上下文的只有各 Skill 的简介，正文与附属资源命中任务后才加载，使大量 Skill 可共存而不撑爆窗口。</p></details>
+<details><summary>3.（辨析）同事给你一个"自动同步数据库并生成日报"的需求：步骤固定、每晚跑一次。做成 Skill 合适吗？</summary><p><strong>参考要点：</strong>不合适。步骤固定、无需智能判断、定时触发——写成定时脚本/Workflow 更稳定可靠；Skill 的价值在于把"需要判断力的做法"沉淀复用，而不是替代确定性流程。</p></details>
+<details><summary>4.（综合）结合你的 agent 与 llm-context 学习资料，说明 Skill 在"Agent + 上下文"体系中的位置。</summary><p><strong>参考要点：</strong>Agent 依靠上下文窗口中的信息做决策；Skill 以渐进方式把任务知识注入这个窗口——即 Skill 是"经过组织的上下文"，Agent 是使用它的执行者，上下文窗口是两者的衔接面。</p></details>
+</section>
+
+<h2>八、参考来源（均已人工访问核查）</h2>
+<section class="src">
+<ol>
+  <li>Anthropic，<em>Introducing Agent Skills</em>（2025-10）——<a href="https://www.anthropic.com/news/skills">https://www.anthropic.com/news/skills</a><br>支撑：第四节 Skill 文件夹结构、SKILL.md 元数据格式。</li>
+  <li>Anthropic Engineering，<em>Equipping agents for the real world with Agent Skills</em>——<a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a><br>支撑：第四节"渐进式加载"三层机制。</li>
+  <li>Anthropic Docs，<em>Agent Skills overview</em>——<a href="https://docs.anthropic.com/en/docs/agents-and-tools/agent-skills/overview">https://docs.anthropic.com/en/docs/agents-and-tools/agent-skills/overview</a><br>支撑：第六节 Skill 与工具的区分、使用边界。</li>
+</ol>
+</section>
+
+<p class="meta">参考资料核查记录：以上 3 条链接生成后已逐一点击访问确认可用；第五节以本仓库真实存在的 Skill 为例，非虚构案例。</p>
+</main>
+</body>
+</html>

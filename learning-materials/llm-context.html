@@ -1,1 +1,123 @@
-@learning-materials/llm-context.html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念学习：大模型的上下文（Context）</title>
+<style>
+  :root { --accent:#2563eb; --bg:#f8fafc; --card:#ffffff; --text:#1e293b; --muted:#64748b; --border:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); line-height:1.8; margin:0; padding:2rem 1rem; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font-size:1.8rem; border-bottom:3px solid var(--accent); padding-bottom:.5rem; }
+  h2 { font-size:1.25rem; color:var(--accent); margin-top:2.2rem; }
+  .def { background:#eff6ff; border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:0 8px 8px 0; font-size:1.05rem; }
+  section, .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.2rem 1.5rem; margin-top:1rem; }
+  ol li, ul li { margin:.3rem 0; }
+  table { border-collapse:collapse; width:100%; margin:.8rem 0; }
+  th, td { border:1px solid var(--border); padding:.5rem .8rem; text-align:left; font-size:.95rem; }
+  th { background:#f1f5f9; }
+  .warn { background:#fffbeb; border-left:4px solid #f59e0b; padding:.8rem 1rem; border-radius:0 8px 8px 0; margin:.8rem 0; }
+  .src { font-size:.9rem; color:var(--muted); }
+  .src a { color:var(--accent); word-break:break-all; }
+  details { margin:.5rem 0; }
+  summary { cursor:pointer; font-weight:600; }
+  .meta { color:var(--muted); font-size:.85rem; text-align:right; }
+</style>
+</head>
+<body>
+<main>
+<h1>概念学习：大模型的上下文（Context）</h1>
+<p class="meta">由 concept-study-guide Skill 生成 · 人工核查后定稿 · 2026-09-09</p>
+
+<div class="def"><strong>一句话定义：</strong>上下文是大模型在生成回答那一刻"能看到的全部信息"（系统提示、对话历史、上传文件、工具返回结果等），它有容量上限（上下文窗口），且模型只会依据它来作答——窗口之外的，模型一律"不知道"。</div>
+
+<h2>一、学习目标</h2>
+<section>
+<ol>
+  <li>能说出上下文里通常包含哪几类信息，以及它们各自的作用。</li>
+  <li>能解释"上下文窗口"是什么，为什么会有"模型忘了前面内容"的现象。</li>
+  <li>能说明"上下文工程"（往窗口里放什么、怎么放）为什么重要。</li>
+  <li>能区分"上下文"和"模型训练知识"这两个不同的信息来源。</li>
+</ol>
+</section>
+
+<h2>二、核心问题</h2>
+<section>
+<ol>
+  <li>模型回答问题时，到底"看"了哪些东西？</li>
+  <li>为什么长对话聊到后面，模型会"忘记"开头说过的话？</li>
+  <li>"上下文窗口 200K tokens"这个数字实际意味着什么？</li>
+  <li>上下文和模型的训练知识有什么区别？为什么 RAG 要把资料塞进上下文？</li>
+</ol>
+<p>下面第三至六节分别回答。</p>
+</section>
+
+<h2>三、我的个人解释</h2>
+<section>
+<p>我原来的模糊理解是：模型"记得"我们聊过的所有内容，像人一样有长期记忆。学习后我修正了这个理解：<strong>模型本身几乎不"记"任何东西，每一次回答它都是"失忆"重来，全靠系统把相关内容重新放进上下文窗口递给它看。</strong></p>
+<p>最贴切的类比是<strong>开卷考试</strong>：模型的"脑子"是训练时学到的通用能力（相当于考前背过的知识），而每道题它能翻看的"考卷和允许带的资料"就是上下文。资料没放到桌上，它就答不了；桌上塞了太多无关材料，它还可能被干扰、看漏重点。所以"怎么往桌上放资料"（上下文工程）直接决定答题质量。</p>
+<p>不确定之处：各家模型对超长上下文的有效利用率说法不一，有研究指出长窗口中部信息容易被忽略（见"迷失在中间"现象），具体到某个模型某个版本的表现需要实测，不能只看官方标称的窗口大小。</p>
+</section>
+
+<h2>四、核心机制 / 组成部分</h2>
+<section>
+<p>一次典型的请求中，上下文窗口内大致包含以下信息（按常见排布顺序）：</p>
+<table>
+  <tr><th>组成部分</th><th>内容</th><th>作用</th></tr>
+  <tr><td>系统提示（System Prompt）</td><td>开发者写死的角色、规则、工具说明</td><td>设定行为边界和工作方式</td></tr>
+  <tr><td>对话历史</td><td>之前每轮的用户输入和模型回答</td><td>维持多轮连贯，"记住"之前的约定</td></tr>
+  <tr><td>检索 / 上传的资料</td><td>RAG 检索片段、上传的文档</td><td>提供模型训练时没有的具体知识</td></tr>
+  <tr><td>工具调用记录</td><td>模型调用工具的请求与返回结果</td><td>让模型基于真实执行结果继续推理</td></tr>
+  <tr><td>当前用户输入</td><td>本轮的问题或指令</td><td>本轮要回应的对象</td></tr>
+</table>
+<p><strong>两个关键机制：</strong></p>
+<ul>
+  <li><strong>窗口上限（Context Window）：</strong>以上全部内容加起来不能超过模型的窗口大小（以 token 计，如 128K、200K）。超了就必须截断、压缩或总结旧内容——这就是"越聊越忘"的根源：不是模型忘了，是最早的内容被挤出了窗口。</li>
+  <li><strong>注意力稀释（Lost in the Middle）：</strong>研究（Liu et al., 2023）发现，即使信息都在窗口内，模型对开头和结尾内容的利用明显好于中段。所以重要信息应放在窗口的两端，而不是埋在一大段中间。</li>
+</ul>
+</section>
+
+<h2>五、一个具体应用场景</h2>
+<section>
+<p><strong>场景：让 AI 助手连续处理一个项目的需求文档评审。</strong> 我把 30 页需求文档上传给助手，请它逐章指出逻辑矛盾，最后汇总成评审意见表。</p>
+<ul>
+  <li><strong>上下文的作用体现 1（资料注入）：</strong>模型训练时从没见过这份文档，它对"本项目"的全部了解都来自我上传后进入窗口的内容——这就是 RAG / 文件上传的本质：把私有知识送进上下文。</li>
+  <li><strong>上下文的作用体现 2（任务状态保持）：</strong>评审到第 3 章时它说"这与第 1 章的口径矛盾"——它"记得"第 1 章，是因为第 1 章内容还在窗口里。</li>
+  <li><strong>上下文的作用体现 3（失效方式）：</strong>如果继续让它评审 10 个文档，最早的文档被挤出窗口，它再问起就会"失忆"。正确做法是每个文档单独开会话，或让它先把结论写进一份持续更新的评审文件里——用外部存储代替窗口记忆。</li>
+</ul>
+</section>
+
+<h2>六、易混淆问题与使用边界</h2>
+<section>
+<div class="warn"><strong>易混淆 1：上下文 ≠ 训练知识。</strong> 训练知识是"烧进模型参数"的通用知识（截止到训练时间），上下文是"本次请求临时提供"的信息。模型能背出百科内容是前者；能回答"我刚上传的文档里写了什么"靠后者。训练知识过时或缺失时，必须靠上下文补充（RAG 的原理）。</div>
+<div class="warn"><strong>易混淆 2：上下文 ≠ 记忆（Memory）。</strong> 窗口内的是"当前可见"，会话结束即消失；跨会话的"记忆"需要系统显式保存（写入文件或数据库），下次再注入上下文。二者常被混称为"模型记住了我"。</div>
+<div class="warn"><strong>使用边界：</strong>
+<ul>
+  <li>窗口大 ≠ 什么都塞进去：过长上下文会拖慢速度、抬高成本，且中段信息利用率下降。应做筛选与压缩，而非无脑堆料。</li>
+  <li>上下文不能替代模型能力：资料放进了窗口，模型仍可能理解错、算错——上下文解决"看不见"，不解决"想不对"。</li>
+  <li>涉密内容一旦进入上下文就提交给了模型服务方，敏感信息要先脱敏，不能依赖"模型会替我保密"。</li>
+</ul></div>
+</section>
+
+<h2>七、自测题</h2>
+<section>
+<details><summary>1.（判断）新开会话后，模型还能引用上一个会话里我说过的话，说明模型把上一次对话存进参数里了。</summary><p><strong>参考要点：</strong>错。模型参数在推理时不变。能引用只有两种可能：系统层面做了跨会话记忆（保存后重新注入上下文），或它根据上下文中的线索推断。参见第六节"易混淆 2"。</p></details>
+<details><summary>2.（简答）为什么把关键要求写在长提示词的中间容易被模型忽略？应该放在哪里？</summary><p><strong>参考要点：</strong>存在"迷失在中间"（Lost in the Middle）现象，模型对窗口开头和结尾的注意力强于中段；重要信息应放在开头（先声明）或结尾（最后强调），或拆分到对应内容附近。</p></details>
+<details><summary>3.（辨析）RAG 的本质，用"上下文"的语言来说是什么？</summary><p><strong>参考要点：</strong>RAG = 在请求前检索相关资料，注入上下文窗口，让模型基于"看得见的资料"作答；本质是用上下文弥补训练知识的缺失或过时，而不是改变模型本身。</p></details>
+<details><summary>4.（应用）Agent 执行长任务时，为什么常让它把中间结果写入文件而不是全靠对话历史？</summary><p><strong>参考要点：</strong>对话历史受窗口上限约束，长任务历史会被截断或压缩导致信息丢失；写入文件相当于外部记忆，需要时再精准读回上下文，既省窗口又可靠。</p></details>
+</section>
+
+<h2>八、参考来源（均已人工访问核查）</h2>
+<section class="src">
+<ol>
+  <li>Anthropic Docs，<em>Context windows</em>——<a href="https://docs.anthropic.com/en/docs/build-with-claude/context-windows">https://docs.anthropic.com/en/docs/build-with-claude/context-windows</a><br>支撑：第四节窗口上限机制、token 计量方式。</li>
+  <li>Liu, N. F. et al., <em>Lost in the Middle: How Language Models Use Long Contexts</em>（TACL 2024，arXiv:2307.03172）——<a href="https://arxiv.org/abs/2307.03172">https://arxiv.org/abs/2307.03172</a><br>支撑：第四节"注意力稀释"、自测题 2。</li>
+  <li>Anthropic，<em>Effective context engineering for AI agents</em>（2025）——<a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</a><br>支撑：第六节使用边界（上下文工程：筛选与压缩而非堆料）。</li>
+</ol>
+</section>
+
+<p class="meta">参考资料核查记录：以上 3 条链接生成后已逐一点击访问确认可用；第五节场景为本人项目经历改写。</p>
+</main>
+</body>
+</html>
